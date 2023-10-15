@@ -3,7 +3,7 @@ servers = [
     hostname: "itcmaster001",
     replicas: 1,
     ip: "192.168.0.114",
-    box: "https://app.vagrantup.com/rockylinux/boxes/9/versions/2.0.0/providers/virtualbox/unknown/vagrant.box",
+    box: "rockylinux/9",
     #box: "shekeriev/debian-11",
     ram: 2048,
     cpu: 2
@@ -12,7 +12,7 @@ servers = [
     hostname: "itcworker001",
     replicas: 1,
     ip: "192.168.0.115",
-    box: "https://app.vagrantup.com/rockylinux/boxes/9/versions/2.0.0/providers/virtualbox/unknown/vagrant.box",
+    box: "rockylinux/9",
     # box: "shekeriev/debian-11",
     ram: 2048,
     cpu: 4
@@ -20,6 +20,8 @@ servers = [
 ]
 
 Vagrant.configure("2") do |config|
+  config.vbguest.auto_update = false   # This config is not recomendable
+  config.vm.synced_folder ".", "/vagrant", type: "nfs", disabled: true # Use vbox 6.1.4 instead
   servers.each_with_index do |server, index|
     vm_name = format("node-%02d", index + 1) # Format the VM name as "node-01" style
     config.vm.define "node-#{index + 1}" do |node| # Set the VM name as "node-X"
