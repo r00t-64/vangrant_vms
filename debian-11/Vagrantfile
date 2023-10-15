@@ -43,6 +43,14 @@ Vagrant.configure("2") do |config|
         sudo yum upgrade -y # Add the sudo apt upgrade command
       SHELL
 
+      node.vm.provision "shell", inline: <<-SHELL  # Docker install
+        sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.reposudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
+        sudo dnf install docker-ce docker-ce-cli containerd.io
+        sudo systemctl start docker
+        sudo systemctl status docker
+        sudo usermod -aG docker $(whoami)
+      SHELL
+
       # Create the "sw_admin" user
       node.vm.provision "shell", inline: <<-SHELL
         sudo useradd -m -s /bin/bash swadmin
