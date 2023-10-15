@@ -23,6 +23,7 @@ Vagrant.configure("2") do |config|
   config.vbguest.auto_update = false   # This config is not recomendable
   config.vm.synced_folder ".", "/vagrant", type: "nfs", disabled: true # Use vbox 6.1.4 instead
   servers.each_with_index do |server, index|
+
     vm_name = format("node-%02d", index + 1) # Format the VM name as "node-01" style
     config.vm.define "node-#{index + 1}" do |node| # Set the VM name as "node-X"
       node.vm.box = server[:box]
@@ -41,14 +42,6 @@ Vagrant.configure("2") do |config|
 
       node.vm.provision "shell", inline: <<-SHELL
         sudo yum upgrade -y # Add the sudo apt upgrade command
-      SHELL
-
-      node.vm.provision "shell", inline: <<-SHELL  # Docker install
-        sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.reposudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
-        sudo dnf install docker-ce docker-ce-cli containerd.io
-        sudo systemctl start docker
-        sudo systemctl status docker
-        sudo usermod -aG docker $(whoami)
       SHELL
 
       # Create the "sw_admin" user
