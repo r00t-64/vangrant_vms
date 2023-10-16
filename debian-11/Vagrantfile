@@ -21,7 +21,7 @@ Vagrant.configure("2") do |config|
   servers.each do |server|
     server[:replicas].times do |index|
       ip_suffix = index
-      vm_name = format("node-%02d-%s%02d", index + 1, server[:hostname], ip_suffix)
+      vm_name = format("node-%02d-%s%02d", index + 1, server[:hostname], index+1)
       ip_parts = server[:ip].split('.')
       ip_parts[-1] = (ip_parts[-1].to_i + ip_suffix).to_s
       ip = ip_parts.join('.')
