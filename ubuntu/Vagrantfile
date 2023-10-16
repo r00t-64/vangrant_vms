@@ -10,7 +10,7 @@ servers = [
   {
     hostname: "itcworker",
     replicas: 2,
-    ip: "192.168.0.114",
+    ip: "192.168.0.120",
     box: "ubuntu/trusty64",
     ram: 2048,
     cpu: 4
