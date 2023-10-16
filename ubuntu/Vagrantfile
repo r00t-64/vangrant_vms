@@ -1,57 +1,55 @@
 servers = [
   {
-    hostname: "itcmaster001",
-    replicas: 1,
+    hostname: "itcmaster",
+    replicas: 3,
     ip: "192.168.0.114",
     box: "ubuntu/trusty64",
-    #box: "shekeriev/debian-11",
     ram: 2048,
     cpu: 2
   },
   {
-    hostname: "itcworker001",
-    replicas: 1,
-    ip: "192.168.0.115",
+    hostname: "itcworker",
+    replicas: 2,
+    ip: "192.168.0.114",
     box: "ubuntu/trusty64",
-    # box: "shekeriev/debian-11",
     ram: 2048,
     cpu: 4
   }
 ]
 
 Vagrant.configure("2") do |config|
-  # config.vbguest.auto_update = false   # This config is not recomendable
-  # config.vm.synced_folder ".", "/vagrant", type: "nfs", disabled: true # Use vbox 6.1.4 instead
-  servers.each_with_index do |server, index|
+  servers.each do |server|
+    server[:replicas].times do |index|
+      ip_suffix = index + 1
+      vm_name = format("node-%02d-%s%02d", index + 1, server[:hostname], ip_suffix)
+      ip_parts = server[:ip].split('.')
+      ip_parts[-1] = (ip_parts[-1].to_i + ip_suffix).to_s
+      ip = ip_parts.join('.')
+      
+      config.vm.define vm_name do |node|
+        node.vm.box = server[:box]
+        node.vm.network "public_network", bridge: "eth0", type: "static", ip: ip
 
-    vm_name = format("node-%02d", index + 1) # Format the VM name as "node-01" style
-    config.vm.define "node-#{index + 1}" do |node| # Set the VM name as "node-X"
-      node.vm.box = server[:box]
+        node.vm.provider "virtualbox" do |vb|
+          vb.name = vm_name
+          vb.memory = server[:ram]
+          vb.cpus = server[:cpu]
+        end
 
-      #Configure a Bridged Adapter and Assign a static IP address to each instance
-      node.vm.network "public_network", bridge: "eth0", type: "static", ip: server[:ip]
+        node.vm.hostname = "#{server[:hostname]}#{format("%02d", ip_suffix)}"
 
-      node.vm.provider "virtualbox" do |vb|
-        vb.name = vm_name # Set the machine name
-        vb.memory = server[:ram]
-        vb.cpus = server[:cpu]
+        node.vm.provision "shell", inline: <<-SHELL
+          sudo useradd -m -s /bin/bash swadmin
+          echo "swadmin:swadmin" | sudo chpasswd
+          sudo usermod -aG sudo swadmin
+        SHELL
+
+        node.vm.provision "shell", inline: <<-SHELL
+          sudo apt-get update
+          sudo apt-get upgrade -y
+          sudo apt-get autoremove -y
+        SHELL
       end
-
-      # Set the hostname of the VM
-      node.vm.hostname = server[:hostname]
-
-      # Create the "sw_admin" user
-      node.vm.provision "shell", inline: <<-SHELL
-        sudo useradd -m -s /bin/bash swadmin
-        echo "swadmin:swadmin" | sudo chpasswd
-        sudo usermod -aG sudo swadmin
-      SHELL
-
-
-      # node.vm.provision "shell", inline: <<-SHELL
-      #   sudo yum upgrade -y # Add the sudo apt upgrade command
-      # SHELL
-
     end
   end
 end
