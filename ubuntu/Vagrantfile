@@ -3,7 +3,7 @@ servers = [
     hostname: "itcmaster001",
     replicas: 1,
     ip: "192.168.0.114",
-    box: "rockylinux/9",
+    box: "ubuntu/trusty64",
     #box: "shekeriev/debian-11",
     ram: 2048,
     cpu: 2
@@ -12,7 +12,7 @@ servers = [
     hostname: "itcworker001",
     replicas: 1,
     ip: "192.168.0.115",
-    box: "rockylinux/9",
+    box: "ubuntu/trusty64",
     # box: "shekeriev/debian-11",
     ram: 2048,
     cpu: 4
@@ -20,8 +20,8 @@ servers = [
 ]
 
 Vagrant.configure("2") do |config|
-  config.vbguest.auto_update = false   # This config is not recomendable
-  config.vm.synced_folder ".", "/vagrant", type: "nfs", disabled: true # Use vbox 6.1.4 instead
+  # config.vbguest.auto_update = false   # This config is not recomendable
+  # config.vm.synced_folder ".", "/vagrant", type: "nfs", disabled: true # Use vbox 6.1.4 instead
   servers.each_with_index do |server, index|
 
     vm_name = format("node-%02d", index + 1) # Format the VM name as "node-01" style
@@ -40,18 +40,17 @@ Vagrant.configure("2") do |config|
       # Set the hostname of the VM
       node.vm.hostname = server[:hostname]
 
-      node.vm.provision "shell", inline: <<-SHELL
-        sudo yum upgrade -y # Add the sudo apt upgrade command
-      SHELL
-
       # Create the "sw_admin" user
       node.vm.provision "shell", inline: <<-SHELL
         sudo useradd -m -s /bin/bash swadmin
         echo "swadmin:swadmin" | sudo chpasswd
-        sudo usermod -aG wheel swadmin
+        sudo usermod -aG sudo swadmin
       SHELL
 
-      node.vm.provision "shell", inline: "sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo"
+
+      # node.vm.provision "shell", inline: <<-SHELL
+      #   sudo yum upgrade -y # Add the sudo apt upgrade command
+      # SHELL
 
     end
   end
